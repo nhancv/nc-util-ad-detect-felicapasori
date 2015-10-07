@@ -1,0 +1,61 @@
+[
+  {
+    "type": 1,
+    "path": "reader/",
+    "sounds": [
+      {
+        "data": "sdefault.wav",
+        "name": "sound1",
+        "is_default": true
+      },
+      {
+        "data": "clasic.wav",
+        "name": "sound2"
+      },
+      {
+        "data": "s67.m4a",
+        "name": "sound3"
+      },
+      {
+        "data": "s85.mp3",
+        "name": "sound4"
+      },
+      {
+        "data": "ponpokopon_ex.mp3",
+        "name": "ponpokopon"
+      }
+    ]
+  },
+  {
+    "type": 2,
+    "path": "birthday/",
+    "sounds": [
+      {
+        "name": "OFF"
+      },
+      {
+        "data": "fanfare.mp3",
+        "name": "fanfare",
+        "is_default": true
+      }
+    ]
+  },
+  {
+    "type": 3,
+    "path": "lottery/",
+    "sounds": [
+      {
+        "name": "OFF"
+      },
+      {
+        "data": "announce.mp3",
+        "name": "announce",
+        "is_default": true
+      },
+      {
+        "data": "get.mp3",
+        "name": "get"
+      }
+    ]
+  }
+]

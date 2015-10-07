@@ -5,5 +5,6 @@ package com.sunnypoint.felicaexample.presenter;
  */
 public interface BasePresenter<V> {
     void onStart(V view);
+
     void onStop();
 }
