@@ -1,20 +1,14 @@
 package com.sunnypoint.felicaexample.views;
 
-import android.app.Dialog;
-import android.content.Context;
 import android.databinding.DataBindingUtil;
-import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
                         BaseReader reader = (BaseReader) msg.obj;
                         if (reader != null && reader instanceof PasoriReaderNonRooted && reader.isReaderAvailable()) {
                             int errorCode = reader.getErrorCode();
-                            showDialogAnnounce(getApplicationContext(), "Error", errorCode + "", false);
+                         LogInfo.getInstance().setMsg("Error "+errorCode);
                         }
                     }
                     break;
@@ -84,8 +78,6 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
 
     @Bind(R.id.vBackground)
     RippleBackground vBackground;
-    @Bind(R.id.btnPolling)
-    ImageButton btnPolling;
     @Bind(R.id.txtLogView)
     TextView txtLogView;
 
@@ -113,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
 //        setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-
         Utils.getInstance().setContext(getApplicationContext());
         mReader = ReaderUtils.getReader(this, mHandler);
         mReader.createReader();
@@ -121,6 +112,9 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         SoundManager.getInstance().init(getApplicationContext());
+
+        txtLogView.setMovementMethod(new ScrollingMovementMethod());
+
 
     }
 
@@ -132,13 +126,26 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
     }
 
     @OnClick(R.id.btnPolling)
-    public void btnPollingOnClick() {
+    public void btnPollingOnClick(View view) {
         ButterKnife.apply(viewList, ENABLED, false);
+        view.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ButterKnife.apply(viewList, ENABLED, true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 1000);
 //        ButterKnife.apply(viewList, View.ALPHA, 0.0f);
 
         vBackground.startRippleAnimation();
-        mReader.startPolling("REQUEST_CHECKIN -> ACTION_API_ERROR");
         LogInfo.getInstance().setMsg("Start Polling");
+        mReader.onActivityPaused(this);
+        mReader.onActivityResumed(this);
+        mReader.stopPolling("Stop to Create");
+        mReader.startPolling("REQUEST_CHECKIN -> ACTION_API_ERROR");
     }
 
 
@@ -157,47 +164,16 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
         // Show output
         Log.i(TAG, "sendFidToServer()");
         if (Utils.getInstance().getUserFID().equals("6300000000000000")) {
-            Toast.makeText(getApplicationContext(), "Please tap again and hold the phone on the reader longer", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Please tap again and hold the phone on the reader longer", Toast.LENGTH_LONG).show();
             mReader.setTapped(false);
             mReader.startPolling("sendFidToServer() Invalid FID");
 
         } else {
             if (!mReader.getTapped()) {
-                // mIsTapped = true;
                 mReader.setTapped(true);
             }
-//            mReader.startPolling("sendFidToServer() again");
         }
     }
-
-
-    public void showDialogAnnounce(Context context, String title, String msg, boolean isError) {
-        final Dialog dialog = new Dialog(context);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.view_dialog_layout, null, false);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.setContentView(view);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-
-        TextView txtTitle = (TextView) dialog.findViewById(R.id.txt_dialog_title);
-        txtTitle.setText(title);
-
-        TextView txtMessage = (TextView) dialog.findViewById(R.id.txt_dialog_message);
-        txtMessage.setText(msg);
-        Button btnOk = (Button) dialog.findViewById(R.id.btn_ok);
-        btnOk.setOnClickListener(v -> {
-            if (isError == false) {
-//                bus.post(new SPMADataEvent(this, null, SPMAEventCode.NEXT));
-            } else {
-//                bus.post(new BusInfo(this, null, "bookerror"));
-            }
-            dialog.dismiss();
-        });
-        dialog.show();
-
-    }
-
 
     //implement readerCallBack
     @Override
@@ -225,9 +201,8 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
             // Play sound effect to notify user the touch successful
             SoundManager.getInstance().play();
             sendFidToServer();
-            ButterKnife.apply(viewList, ENABLED, true);
             vBackground.stopRippleAnimation();
-            LogInfo.getInstance().setMsg("Successful");
+            LogInfo.getInstance().setMsg("Successful: "+ Utils.getInstance().getUserFID() + " has been detected.");
             // Close error alert dialog
 
         }

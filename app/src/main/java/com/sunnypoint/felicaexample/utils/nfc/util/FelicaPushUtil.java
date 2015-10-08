@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.felicanetworks.mfc.PushSegment;
 import com.felicanetworks.mfc.PushStartBrowserSegment;
+import com.sunnypoint.felicaexample.model.LogInfo;
 import com.sunnypoint.felicaexample.utils.nfc.PushCommand;
 
 import net.kazzz.felica.FeliCaException;
@@ -16,31 +17,32 @@ public class FelicaPushUtil {
 
     public static PushSegment getPushSegment(String url, String browserParam) {
         Log.v(TAG, "getPushSegment");
+        LogInfo.getInstance().setMsg(TAG + ": getPushSegment");
 
         final PushStartBrowserSegment segment;
         segment = new PushStartBrowserSegment(url, browserParam);
 
         Log.v(TAG, "Segment:" + segment.getURL() + "Param:" + segment.getBrowserStartupParam());
+        LogInfo.getInstance().setMsg(TAG + ": Segment:" + segment.getURL() + "Param:" + segment.getBrowserStartupParam());
 
         return segment;
     }
 
     public static byte[] getPushData(PushSegment segment, byte[] idm_) {
         Log.v(TAG, "getPushData");
-
-
+        LogInfo.getInstance().setMsg(TAG + ": getPushData");
         Log.v(TAG, "Idm:" + getString(idm_));
-
+        LogInfo.getInstance().setMsg(TAG + ": Idm:" + getString(idm_));
 
         try {
             final PushCommand pushCommand = PushCommand.create(new IDm(idm_), segment);
             final byte[] pushData = pushCommand.getBytes();
-
             Log.v(TAG, "Push Data hexString:" + getString(pushData));
-
+            LogInfo.getInstance().setMsg(TAG + ": Push Data hexString:" + getString(pushData));
             return pushData;
         } catch (FeliCaException e) {
             Log.v(TAG, "Create Push Command Error");
+            LogInfo.getInstance().setMsg(TAG + ": Create Push Command Error");
             return null;
         }
 
@@ -48,8 +50,9 @@ public class FelicaPushUtil {
 
     public static byte[] getPushData(String url, String browserParam, byte[] idm_) {
         Log.v(TAG, "getPushData");
-
+        LogInfo.getInstance().setMsg(TAG + ": getPushData");
         Log.v(TAG, "Idm:" + getString(idm_));
+        LogInfo.getInstance().setMsg(TAG + ": Idm:" + getString(idm_));
 
         PushSegment segment = FelicaPushUtil.getPushSegment(url, browserParam);
         try {
@@ -57,10 +60,13 @@ public class FelicaPushUtil {
             final byte[] pushData = pushCommand.getBytes();
 
             Log.v(TAG, "Push Data hexString:" + getString(pushData));
+            LogInfo.getInstance().setMsg(TAG + ": Push Data hexString:" + getString(pushData));
 
             return pushData;
         } catch (FeliCaException e) {
             Log.v(TAG, "Create Push Command Error");
+            LogInfo.getInstance().setMsg(TAG + ": Create Push Command Error");
+
             return null;
         }
 
