@@ -2,6 +2,7 @@ package com.sunnypoint.felicaexample.views;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -13,16 +14,26 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sunnypoint.felicaexample.R;
+import com.sunnypoint.felicaexample.databinding.ActivityMainBinding;
+import com.sunnypoint.felicaexample.model.LogInfo;
 import com.sunnypoint.felicaexample.utils.SoundManager;
 import com.sunnypoint.felicaexample.utils.Utils;
 import com.sunnypoint.felicaexample.utils.nfc.BaseReader;
 import com.sunnypoint.felicaexample.utils.nfc.PasoriReaderNonRooted;
 import com.sunnypoint.felicaexample.utils.nfc.ReaderCallback;
 import com.sunnypoint.felicaexample.utils.nfc.ReaderUtils;
+import com.sunnypoint.ripplebackground.RippleBackground;
+
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity implements ReaderCallback {
 
@@ -71,19 +82,45 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
         }
     };
 
+    @Bind(R.id.vBackground)
+    RippleBackground vBackground;
+    @Bind(R.id.btnPolling)
+    ImageButton btnPolling;
+    @Bind(R.id.txtLogView)
+    TextView txtLogView;
+
+    @Bind({R.id.btnPolling})
+    List<View> viewList;
+    static final ButterKnife.Action<View> DISABLE = new ButterKnife.Action<View>() {
+        @Override
+        public void apply(View view, int index) {
+            view.setEnabled(false);
+        }
+    };
+    static final ButterKnife.Setter<View, Boolean> ENABLED = new ButterKnife.Setter<View, Boolean>() {
+        @Override
+        public void set(View view, Boolean value, int index) {
+            view.setEnabled(value);
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        binding.setLogView(LogInfo.getInstance());
+//        setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+
+
         Utils.getInstance().setContext(getApplicationContext());
         mReader = ReaderUtils.getReader(this, mHandler);
-        //Setup Felica
+        mReader.createReader();
         Log.i(TAG, Thread.currentThread().getStackTrace()[2].getMethodName().toString());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         SoundManager.getInstance().init(getApplicationContext());
-        mReader.createReader();
 
     }
 
@@ -92,9 +129,16 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
         super.onResume();
         Log.i(TAG, "onResume: ");
         mReader.onActivityResumed(this);
+    }
 
+    @OnClick(R.id.btnPolling)
+    public void btnPollingOnClick() {
+        ButterKnife.apply(viewList, ENABLED, false);
+//        ButterKnife.apply(viewList, View.ALPHA, 0.0f);
+
+        vBackground.startRippleAnimation();
         mReader.startPolling("REQUEST_CHECKIN -> ACTION_API_ERROR");
-
+        LogInfo.getInstance().setMsg("Start Polling");
     }
 
 
@@ -154,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
 
     }
 
+
     //implement readerCallBack
     @Override
     public void onReaderCreated(BaseReader reader, boolean success) {
@@ -180,6 +225,9 @@ public class MainActivity extends AppCompatActivity implements ReaderCallback {
             // Play sound effect to notify user the touch successful
             SoundManager.getInstance().play();
             sendFidToServer();
+            ButterKnife.apply(viewList, ENABLED, true);
+            vBackground.stopRippleAnimation();
+            LogInfo.getInstance().setMsg("Successful");
             // Close error alert dialog
 
         }
